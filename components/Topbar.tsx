@@ -139,8 +139,11 @@ export default function Topbar() {
     const [loanModule, setLoanModule] = useState<"MFI" | "PERSONAL">(() => {
         if (typeof window !== "undefined") {
             const stored = localStorage.getItem("loanModule");
-            if (stored === "MFI" || stored === "PERSONAL") {
+            if (stored === "MFI") {
                 return stored;
+            }
+            if (stored === "PERSONAL") {
+                localStorage.setItem("loanModule", "MFI");
             }
         }
         return "MFI";
@@ -525,7 +528,7 @@ export default function Topbar() {
                         </button>
                     )}
 
-                    {/* Module Switcher (MFI vs Personal Smart Savings) */}
+                    {/* Module Switcher (MFI Module active; savings module hidden) */}
                     <select
                         className={`rounded-xl px-2.5 py-1.5 text-xs font-bold shadow-2xs transition-all cursor-pointer ${isPersonal
                             ? "border border-[#7C5CFC]/40 bg-[#2F2864] text-white focus:ring-2 focus:ring-[#7C5CFC]"
@@ -536,9 +539,6 @@ export default function Topbar() {
                     >
                         <option value="MFI" className={isPersonal ? "bg-[#241E4E] text-white font-medium" : "font-medium text-slate-800"}>
                             MFI Module
-                        </option>
-                        <option value="PERSONAL" className={isPersonal ? "bg-[#241E4E] text-white font-medium" : "font-medium text-slate-800"}>
-                            Smart Savings
                         </option>
                     </select>
 

@@ -222,19 +222,24 @@ function ProfileContent() {
                     emp.travellingAllowance !== undefined ? String(emp.travellingAllowance) : "500",
             });
 
-            // Fetch employee's salary slip history
-            setLoadingSalaries(true);
-            try {
-                const salRes = await fetch(`/api/salary/list?employeeId=${emp._id}`, {
-                    cache: "no-store",
-                });
-                const salData = await salRes.json();
-                if (salData.success) {
-                    setSalaries(salData.salaries || []);
+            // Fetch employee's salary slip history (staff profiles only, not administrators)
+            if (emp.role !== "ADMINISTRATOR") {
+                setLoadingSalaries(true);
+                try {
+                    const salRes = await fetch(`/api/salary/list?employeeId=${emp._id}`, {
+                        cache: "no-store",
+                    });
+                    const salData = await salRes.json();
+                    if (salData.success) {
+                        setSalaries(salData.salaries || []);
+                    }
+                } catch (salErr) {
+                    console.error("Error fetching salaries:", salErr);
+                } finally {
+                    setLoadingSalaries(false);
                 }
-            } catch (salErr) {
-                console.error("Error fetching salaries:", salErr);
-            } finally {
+            } else {
+                setSalaries([]);
                 setLoadingSalaries(false);
             }
         } catch (err) {
@@ -461,7 +466,9 @@ function ProfileContent() {
                             )}
                         </h1>
                         <p className="text-xs text-slate-500">
-                            Verified personnel records, compensation history, and salary slips
+                            {employee.role === "ADMINISTRATOR"
+                                ? "Verified administrator personnel records, credentials, and access controls"
+                                : "Verified personnel records, compensation history, and salary slips"}
                         </p>
                     </div>
                 </div>
@@ -479,16 +486,18 @@ function ProfileContent() {
                             Edit Profile Details
                         </Button>
 
-                        <Button
-                            onClick={() =>
-                                router.push(`/dashboard/staff salary/calculator?employeeId=${employee._id}`)
-                            }
-                            size="sm"
-                            className="bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/40 font-bold text-xs gap-1.5 shadow-sm"
-                        >
-                            <Coins className="w-3.5 h-3.5 text-amber-400" />
-                            Issue Salary Slip
-                        </Button>
+                        {employee.role !== "ADMINISTRATOR" && (
+                            <Button
+                                onClick={() =>
+                                    router.push(`/dashboard/staff-salary/calculator?employeeId=${employee._id}`)
+                                }
+                                size="sm"
+                                className="bg-slate-900 hover:bg-slate-800 text-amber-400 border border-amber-500/40 font-bold text-xs gap-1.5 shadow-sm"
+                            >
+                                <Coins className="w-3.5 h-3.5 text-amber-400" />
+                                Issue Salary Slip
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>
@@ -578,143 +587,145 @@ function ProfileContent() {
                     </div>
                 </div>
 
-                {/* Section: Salary Details */}
-                <div className="pt-6 space-y-3">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-sm sm:text-base font-black text-black underline underline-offset-4 tracking-wide">
-                            Salary Details
-                        </h2>
-                        {session?.user?.role === "ADMINISTRATOR" && (
-                            <button
-                                onClick={() =>
-                                    router.push(`/dashboard/staff-salary/calculator?employeeId=${employee._id}`)
-                                }
-                                className="text-xs font-bold text-amber-800 hover:text-amber-900 flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded-lg border border-amber-300 transition-colors shadow-2xs"
-                            >
-                                <Plus className="w-3.5 h-3.5" /> Issue New Slip
-                            </button>
-                        )}
-                    </div>
+                {/* Section: Salary Details (Staff only - Administrators do not need salary slips or salary table) */}
+                {employee.role !== "ADMINISTRATOR" && (
+                    <div className="pt-6 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm sm:text-base font-black text-black underline underline-offset-4 tracking-wide">
+                                Salary Details
+                            </h2>
+                            {session?.user?.role === "ADMINISTRATOR" && (
+                                <button
+                                    onClick={() =>
+                                        router.push(`/dashboard/staff-salary/calculator?employeeId=${employee._id}`)
+                                    }
+                                    className="text-xs font-bold text-amber-800 hover:text-amber-900 flex items-center gap-1 bg-amber-50 hover:bg-amber-100 px-3 py-1 rounded-lg border border-amber-300 transition-colors shadow-2xs"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Issue New Slip
+                                </button>
+                            )}
+                        </div>
 
-                    <div className="border border-slate-300 overflow-x-auto shadow-2xs">
-                        <table className="w-full text-left text-xs sm:text-sm border-collapse border border-slate-300">
-                            <thead>
-                                <tr className="bg-[#800000] text-white font-bold">
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        View Salary Slip
-                                    </th>
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        ID
-                                    </th>
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        Date
-                                    </th>
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        Absent Days
-                                    </th>
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        Incentive
-                                    </th>
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        Advance
-                                    </th>
-                                    <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
-                                        Net Salary
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200">
-                                {loadingSalaries ? (
-                                    <tr>
-                                        <td
-                                            colSpan={7}
-                                            className="py-8 text-center text-slate-500 font-medium border border-slate-300"
-                                        >
-                                            <div className="flex items-center justify-center gap-2">
-                                                <RefreshCw className="w-4 h-4 animate-spin text-amber-600" />
-                                                <span>Loading salary slips...</span>
-                                            </div>
-                                        </td>
+                        <div className="border border-slate-300 overflow-x-auto shadow-2xs">
+                            <table className="w-full text-left text-xs sm:text-sm border-collapse border border-slate-300">
+                                <thead>
+                                    <tr className="bg-[#800000] text-white font-bold">
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            View Salary Slip
+                                        </th>
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            ID
+                                        </th>
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            Date
+                                        </th>
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            Absent Days
+                                        </th>
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            Incentive
+                                        </th>
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            Advance
+                                        </th>
+                                        <th className="py-2 px-2.5 sm:px-3 text-center border border-slate-400 font-bold whitespace-nowrap">
+                                            Net Salary
+                                        </th>
                                     </tr>
-                                ) : issuedSalaries.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={7}
-                                            className="py-10 text-center border border-slate-300 bg-slate-50/50"
-                                        >
-                                            <div className="flex flex-col items-center justify-center gap-2 text-slate-500 py-3">
-                                                <FileSpreadsheet className="w-9 h-9 text-slate-400 stroke-[1.5]" />
-                                                <p className="font-bold text-sm text-slate-700">No slip issued</p>
-                                                <p className="text-xs text-slate-500">
-                                                    No salary slip has been issued for this employee yet.
-                                                </p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    issuedSalaries.map((s, idx) => (
-                                        <tr
-                                            key={s._id}
-                                            className={`hover:bg-amber-50/50 ${
-                                                idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"
-                                            }`}
-                                        >
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedPayslipData({
-                                                            ...s,
-                                                            fatherName: s.fatherName || employee.fatherName || "",
-                                                            joiningDate: employee.joiningDate || formattedJoinDate,
-                                                            dob: employee.dob || "",
-                                                            bankName: s.bankName || employee.bankName || "STATE BANK OF INDIA",
-                                                            bankAccountNo: s.bankAccountNo || employee.bankAccountNo || "",
-                                                            panNo: s.panNo || employee.panNo || "",
-                                                            pfNo: s.pfNo || employee.pfNo || "",
-                                                            esiNo: s.esiNo || employee.esiNo || "",
-                                                            accumulatedStaffDeposit:
-                                                                s.accumulatedStaffDeposit ??
-                                                                employee.accumulatedStaffDeposit ??
-                                                                0,
-                                                            remainingLeave:
-                                                                s.remainingLeave ??
-                                                                employee.remainingLeave ??
-                                                                0,
-                                                        } as PayslipData);
-                                                        setPayslipModalOpen(true);
-                                                    }}
-                                                    className="px-3 py-0.5 bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 border border-neutral-400 rounded-xs text-xs font-semibold text-neutral-800 shadow-2xs transition-colors cursor-pointer"
-                                                >
-                                                    Select
-                                                </button>
-                                            </td>
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-medium">
-                                                {s.slipId}
-                                            </td>
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono">
-                                                {s.date}
-                                            </td>
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-medium text-slate-800">
-                                                {s.absentDays}
-                                            </td>
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono">
-                                                {formatNumberINR(
-                                                    s.incentive?.full || s.incentive?.actual || 0
-                                                )}
-                                            </td>
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono">
-                                                {formatNumberINR(s.advance || 0)}
-                                            </td>
-                                            <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono font-bold text-slate-900">
-                                                {formatNumberINR(s.netSalary)}
+                                </thead>
+                                <tbody className="divide-y divide-slate-200">
+                                    {loadingSalaries ? (
+                                        <tr>
+                                            <td
+                                                colSpan={7}
+                                                className="py-8 text-center text-slate-500 font-medium border border-slate-300"
+                                            >
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <RefreshCw className="w-4 h-4 animate-spin text-amber-600" />
+                                                    <span>Loading salary slips...</span>
+                                                </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : issuedSalaries.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan={7}
+                                                className="py-10 text-center border border-slate-300 bg-slate-50/50"
+                                            >
+                                                <div className="flex flex-col items-center justify-center gap-2 text-slate-500 py-3">
+                                                    <FileSpreadsheet className="w-9 h-9 text-slate-400 stroke-[1.5]" />
+                                                    <p className="font-bold text-sm text-slate-700">No slip issued</p>
+                                                    <p className="text-xs text-slate-500">
+                                                        No salary slip has been issued for this employee yet.
+                                                    </p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        issuedSalaries.map((s, idx) => (
+                                            <tr
+                                                key={s._id}
+                                                className={`hover:bg-amber-50/50 ${
+                                                    idx % 2 === 0 ? "bg-white" : "bg-slate-50/60"
+                                                }`}
+                                            >
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300">
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedPayslipData({
+                                                                ...s,
+                                                                fatherName: s.fatherName || employee.fatherName || "",
+                                                                joiningDate: employee.joiningDate || formattedJoinDate,
+                                                                dob: employee.dob || "",
+                                                                bankName: s.bankName || employee.bankName || "STATE BANK OF INDIA",
+                                                                bankAccountNo: s.bankAccountNo || employee.bankAccountNo || "",
+                                                                panNo: s.panNo || employee.panNo || "",
+                                                                pfNo: s.pfNo || employee.pfNo || "",
+                                                                esiNo: s.esiNo || employee.esiNo || "",
+                                                                accumulatedStaffDeposit:
+                                                                    s.accumulatedStaffDeposit ??
+                                                                    employee.accumulatedStaffDeposit ??
+                                                                    0,
+                                                                remainingLeave:
+                                                                    s.remainingLeave ??
+                                                                    employee.remainingLeave ??
+                                                                    0,
+                                                            } as PayslipData);
+                                                            setPayslipModalOpen(true);
+                                                        }}
+                                                        className="px-3 py-0.5 bg-neutral-100 hover:bg-neutral-200 active:bg-neutral-300 border border-neutral-400 rounded-xs text-xs font-semibold text-neutral-800 shadow-2xs transition-colors cursor-pointer"
+                                                    >
+                                                        Select
+                                                    </button>
+                                                </td>
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-medium">
+                                                    {s.slipId}
+                                                </td>
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono">
+                                                    {s.date}
+                                                </td>
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-medium text-slate-800">
+                                                    {s.absentDays}
+                                                </td>
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono">
+                                                    {formatNumberINR(
+                                                        s.incentive?.full || s.incentive?.actual || 0
+                                                    )}
+                                                </td>
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono">
+                                                    {formatNumberINR(s.advance || 0)}
+                                                </td>
+                                                <td className="py-1.5 px-2.5 sm:px-3 text-center border border-slate-300 font-mono font-bold text-slate-900">
+                                                    {formatNumberINR(s.netSalary)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* PASSWORD RESET MODAL */}
@@ -952,67 +963,69 @@ function ProfileContent() {
                                 </div>
                             </div>
 
-                            {/* Salary Structure Presets */}
-                            <div className="pt-2 border-t border-slate-200">
-                                <h4 className="font-bold text-slate-900 mb-2">Default Salary Components</h4>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    <div>
-                                        <label className="font-semibold text-slate-700 block mb-1">
-                                            Basic (₹)
-                                        </label>
-                                        <Input
-                                            type="number"
-                                            value={editForm.basicSalary}
-                                            onChange={(e) =>
-                                                setEditForm({ ...editForm, basicSalary: e.target.value })
-                                            }
-                                            className="rounded-xl"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="font-semibold text-slate-700 block mb-1">
-                                            HRA (₹)
-                                        </label>
-                                        <Input
-                                            type="number"
-                                            value={editForm.hra}
-                                            onChange={(e) =>
-                                                setEditForm({ ...editForm, hra: e.target.value })
-                                            }
-                                            className="rounded-xl"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="font-semibold text-slate-700 block mb-1">
-                                            DA (₹)
-                                        </label>
-                                        <Input
-                                            type="number"
-                                            value={editForm.da}
-                                            onChange={(e) =>
-                                                setEditForm({ ...editForm, da: e.target.value })
-                                            }
-                                            className="rounded-xl"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="font-semibold text-slate-700 block mb-1">
-                                            Travel (₹)
-                                        </label>
-                                        <Input
-                                            type="number"
-                                            value={editForm.travellingAllowance}
-                                            onChange={(e) =>
-                                                setEditForm({
-                                                    ...editForm,
-                                                    travellingAllowance: e.target.value,
-                                                })
-                                            }
-                                            className="rounded-xl"
-                                        />
+                            {/* Salary Structure Presets (Staff Only) */}
+                            {employee.role !== "ADMINISTRATOR" && (
+                                <div className="pt-2 border-t border-slate-200">
+                                    <h4 className="font-bold text-slate-900 mb-2">Default Salary Components</h4>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div>
+                                            <label className="font-semibold text-slate-700 block mb-1">
+                                                Basic (₹)
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                value={editForm.basicSalary}
+                                                onChange={(e) =>
+                                                    setEditForm({ ...editForm, basicSalary: e.target.value })
+                                                }
+                                                className="rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-semibold text-slate-700 block mb-1">
+                                                HRA (₹)
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                value={editForm.hra}
+                                                onChange={(e) =>
+                                                    setEditForm({ ...editForm, hra: e.target.value })
+                                                }
+                                                className="rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-semibold text-slate-700 block mb-1">
+                                                DA (₹)
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                value={editForm.da}
+                                                onChange={(e) =>
+                                                    setEditForm({ ...editForm, da: e.target.value })
+                                                }
+                                                className="rounded-xl"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-semibold text-slate-700 block mb-1">
+                                                Travel (₹)
+                                            </label>
+                                            <Input
+                                                type="number"
+                                                value={editForm.travellingAllowance}
+                                                onChange={(e) =>
+                                                    setEditForm({
+                                                        ...editForm,
+                                                        travellingAllowance: e.target.value,
+                                                    })
+                                                }
+                                                className="rounded-xl"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
 
                             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
                                 <Button
