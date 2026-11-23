@@ -1,0 +1,186 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Modern Violet / Midnight Palette from Reference Design */
+  --color-amber-50: #f5f3ff;
+  --color-amber-100: #ede9fe;
+  --color-amber-200: #ddd6fe;
+  --color-amber-300: #c4b5fd;
+  --color-amber-400: #a78bfa;
+  --color-amber-500: #7c5cfc;
+  --color-amber-600: #6846eb;
+  --color-amber-700: #5835e5;
+  --color-amber-800: #4924d6;
+  --color-amber-900: #26215b;
+  --color-amber-950: #1c173d;
+
+  --color-brand-purple: #7c5cfc;
+  --color-brand-midnight: #241e4e;
+  --color-brand-lavender: #ede9fe;
+  --color-brand-bg: #f4f5fa;
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: #f4f5fa;
+  --foreground: #1c1942;
+  --card: #ffffff;
+  --card-foreground: #1c1942;
+  --popover: #ffffff;
+  --popover-foreground: #1c1942;
+  --primary: #7c5cfc;
+  --primary-foreground: #ffffff;
+  --secondary: #ede9fe;
+  --secondary-foreground: #26215b;
+  --muted: #f1f0f7;
+  --muted-foreground: #64748b;
+  --accent: #ede9fe;
+  --accent-foreground: #7c5cfc;
+  --destructive: #ef4444;
+  --border: #e8e7f0;
+  --input: #e2e1ec;
+  --ring: #7c5cfc;
+  --chart-1: #7c5cfc;
+  --chart-2: #26215b;
+  --chart-3: #a78bfa;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1c1942;
+  --sidebar-primary: #7c5cfc;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ede9fe;
+  --sidebar-accent-foreground: #7c5cfc;
+  --sidebar-border: #e8e7f0;
+  --sidebar-ring: #7c5cfc;
+}
+
+.dark {
+  --background: #15122b;
+  --foreground: #f4f5fa;
+  --card: #201a42;
+  --card-foreground: #f4f5fa;
+  --popover: #201a42;
+  --popover-foreground: #f4f5fa;
+  --primary: #8b6efd;
+  --primary-foreground: #ffffff;
+  --secondary: #2b2357;
+  --secondary-foreground: #ede9fe;
+  --muted: #2b2357;
+  --muted-foreground: #9490b8;
+  --accent: #2b2357;
+  --accent-foreground: #8b6efd;
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #8b6efd;
+  --chart-1: #8b6efd;
+  --chart-2: #382e75;
+  --chart-3: #c4b5fd;
+  --chart-4: #f59e0b;
+  --chart-5: #10b981;
+  --sidebar: #1a1538;
+  --sidebar-foreground: #f4f5fa;
+  --sidebar-primary: #8b6efd;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2b2357;
+  --sidebar-accent-foreground: #8b6efd;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #8b6efd;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 6mm; /* reduce margin */
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* remove top gap from report title */
+  h2, p {
+    margin-top: 0 !important;
+  }
+
+  /* reduce card spacing */
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 10px !important;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari */
+::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+html,
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for IE/Edge */
+body,
+.no-scrollbar {
+  -ms-overflow-style: none;
+}
